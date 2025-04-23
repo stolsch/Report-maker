@@ -1,15 +1,17 @@
+# === app.py (Streamlit UI with OpenAI SDK v1+) ===
 
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
-import openai
+from openai import OpenAI
 from docx import Document
 from datetime import datetime
 import os
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 TEMPLATE_PATH = "CyberSec Target Profile_Template_1744109169569.docx"
+
 
 def search_web(query):
     url = f"https://www.google.com/search?q={query}"
@@ -19,6 +21,7 @@ def search_web(query):
     links = [a['href'] for a in soup.select("a") if a['href'].startswith("http")]
     return links[:5]
 
+
 def summarize_sections(company_name):
     prompt = f"""
     Fill the following cybersecurity company profile template with real or best-estimate data about a company called: {company_name}.
@@ -26,12 +29,13 @@ def summarize_sections(company_name):
     Also explain common terms like MVP, SaaS, AI, etc., at the end as a glossary.
     Format responses in structured paragraphs with each section clearly labeled.
     """
-    response = openai.ChatCompletion.create(
+    chat_completion = client.chat.completions.create(
         model="gpt-4",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7
     )
-    return response.choices[0].message['content']
+    return chat_completion.choices[0].message.content
+
 
 def generate_profile(company_name):
     doc = Document(TEMPLATE_PATH)
@@ -49,6 +53,7 @@ def generate_profile(company_name):
     output_path = f"{company_name.replace(' ', '_')}_CyberProfile.docx"
     doc.save(output_path)
     return output_path
+
 
 # === Streamlit UI ===
 st.set_page_config(page_title="Cyber Startup Reporter")
