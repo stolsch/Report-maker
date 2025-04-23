@@ -1,5 +1,5 @@
+openai>=1.0.0
 streamlit
-openai
 python-docx
 beautifulsoup4
 requests
